@@ -1103,6 +1103,7 @@ html, body {
     <div class="statusbar-right">
       <span id="status-storage"></span>
       <span id="status-theme"></span>
+      <span id="status-version" class="text-dim"></span>
     </div>
   </div>
 </div>
@@ -1283,7 +1284,7 @@ html, body {
 (function() {
   'use strict';
 
-  const APP_VERSION = '1.6.0';
+  const APP_VERSION = '1.6.1';
 
   // ─── Storage Helpers ───────────────────────────────────────────────
   const KEYS = {
@@ -2332,6 +2333,7 @@ html, body {
     refreshUI();
     renderHotkeyTable();
     document.getElementById('about-version').textContent = 'v' + APP_VERSION;
+    document.getElementById('status-version').textContent = 'v' + APP_VERSION;
     setFocus('log');
     bindEvents();
     startQuoteRotation();
