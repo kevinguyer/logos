@@ -1,0 +1,2600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>log.os()</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%230a0a0a'/><text x='16' y='23' text-anchor='middle' font-family='monospace' font-size='18' font-weight='bold' fill='%2333ff33'>%3E_</text></svg>">
+<style>
+/* ========== FONTS ========== */
+@import url('https://fonts.googleapis.com/css2?family=VT323&family=Fira+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;700&family=JetBrains+Mono:wght@400;700&family=Share+Tech+Mono&family=Source+Code+Pro:wght@400;700&family=Space+Mono:wght@400;700&family=Inconsolata:wght@400;700&display=swap');
+
+/* ========== CSS VARIABLES / THEMES ========== */
+:root {
+  --fg: #33ff33;
+  --fg-dim: #1a8c1a;
+  --fg-bright: #66ff66;
+  --bg: #0a0a0a;
+  --bg-panel: #0d0d0d;
+  --bg-input: #050505;
+  --border: #33ff33;
+  --glow: 0 0 8px rgba(51, 255, 51, 0.4);
+  --text-glow: 0 0 6px rgba(51, 255, 51, 0.5);
+  --font: 'Share Tech Mono', 'Courier New', monospace;
+  --scanline-opacity: 0.04;
+}
+
+[data-theme="amber"] {
+  --fg: #ffaa00;
+  --fg-dim: #8c5e00;
+  --fg-bright: #ffcc44;
+  --bg: #0a0a0a;
+  --bg-panel: #0d0b08;
+  --bg-input: #050400;
+  --border: #ffaa00;
+  --glow: 0 0 8px rgba(255, 170, 0, 0.4);
+  --text-glow: 0 0 6px rgba(255, 170, 0, 0.5);
+  --font: 'Fira Mono', 'Courier New', monospace;
+}
+
+[data-theme="sepia"] {
+  --fg: #c8a26e;
+  --fg-dim: #6e5a3d;
+  --fg-bright: #dbb88a;
+  --bg: #1a1208;
+  --bg-panel: #1e160c;
+  --bg-input: #120e06;
+  --border: #c8a26e;
+  --glow: 0 0 8px rgba(200, 162, 110, 0.3);
+  --text-glow: 0 0 6px rgba(200, 162, 110, 0.4);
+  --font: 'IBM Plex Mono', 'Courier New', monospace;
+}
+
+[data-theme="blue"] {
+  --fg: #00aaff;
+  --fg-dim: #005580;
+  --fg-bright: #44ccff;
+  --bg: #080a10;
+  --bg-panel: #0a0d14;
+  --bg-input: #060810;
+  --border: #00aaff;
+  --glow: 0 0 8px rgba(0, 170, 255, 0.4);
+  --text-glow: 0 0 6px rgba(0, 170, 255, 0.5);
+  --font: 'JetBrains Mono', 'Courier New', monospace;
+}
+
+[data-theme="wyse"] {
+  --fg: #e0e0e0;
+  --fg-dim: #707070;
+  --fg-bright: #ffffff;
+  --bg: #0a0a0a;
+  --bg-panel: #0e0e0e;
+  --bg-input: #050505;
+  --border: #b0b0b0;
+  --glow: 0 0 4px rgba(224, 224, 224, 0.2);
+  --text-glow: 0 0 3px rgba(224, 224, 224, 0.25);
+  --font: 'Inconsolata', 'Courier New', monospace;
+}
+
+[data-theme="c64"] {
+  --fg: #7b71d5;
+  --fg-dim: #4a42a0;
+  --fg-bright: #9f97ef;
+  --bg: #40318d;
+  --bg-panel: #372b7a;
+  --bg-input: #2e2468;
+  --border: #7b71d5;
+  --glow: 0 0 6px rgba(123, 113, 213, 0.4);
+  --text-glow: 0 0 5px rgba(123, 113, 213, 0.45);
+  --font: 'Source Code Pro', 'Courier New', monospace;
+}
+
+[data-theme="apple2"] {
+  --fg: #43ff43;
+  --fg-dim: #1e7a1e;
+  --fg-bright: #7aff7a;
+  --bg: #000000;
+  --bg-panel: #040404;
+  --bg-input: #000000;
+  --border: #43ff43;
+  --glow: 0 0 10px rgba(67, 255, 67, 0.5);
+  --text-glow: 0 0 8px rgba(67, 255, 67, 0.6);
+  --font: 'VT323', 'Courier New', monospace;
+}
+
+[data-theme="paperwhite"] {
+  --fg: #1a1a1a;
+  --fg-dim: #888888;
+  --fg-bright: #000000;
+  --bg: #e8e0d0;
+  --bg-panel: #dfd8c8;
+  --bg-input: #d6cfc0;
+  --border: #1a1a1a;
+  --glow: none;
+  --text-glow: none;
+  --font: 'Space Mono', 'Courier New', monospace;
+}
+
+[data-theme="kindle"] {
+  --fg: #3b3731;
+  --fg-dim: #9e9a94;
+  --fg-bright: #1a1714;
+  --bg: #f5f1e8;
+  --bg-panel: #eee9df;
+  --bg-input: #e8e3d9;
+  --border: #c8c3b8;
+  --glow: none;
+  --text-glow: none;
+  --scanline-opacity: 0;
+  --font: 'Space Mono', 'Courier New', monospace;
+}
+
+/* ========== RESET & BASE ========== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.4;
+}
+
+::selection {
+  background: var(--fg);
+  color: var(--bg);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--fg-dim);
+  border: 1px solid var(--border);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fg);
+}
+
+/* ========== APP SHELL ========== */
+#app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: relative;
+}
+
+/* Scanline overlay */
+#app::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0, var(--scanline-opacity)) 2px,
+    rgba(0,0,0, var(--scanline-opacity)) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* CRT screen curvature vignette */
+.crt-vignette {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ========== HEADER ========== */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.header-title {
+  font-size: 22px;
+  text-shadow: var(--text-glow);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+
+.header-middle {
+  flex: 1;
+  min-width: 0;
+  padding: 0 16px;
+}
+
+.header-quote {
+  font-size: 14px;
+  color: var(--fg-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.5px;
+  font-style: italic;
+}
+
+.header-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 4px 10px;
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  text-shadow: var(--text-glow);
+  transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
+}
+.btn:hover, .btn:focus {
+  background: var(--fg);
+  color: var(--bg);
+  box-shadow: var(--glow);
+  outline: none;
+  text-shadow: none;
+}
+.btn:active {
+  opacity: 0.8;
+}
+
+.btn-primary {
+  background: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+  font-weight: bold;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--fg-bright);
+  box-shadow: var(--glow);
+}
+
+.btn-danger {
+  border-color: var(--fg-dim);
+  color: var(--fg-dim);
+}
+.btn-danger:hover, .btn-danger:focus {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+/* ========== MAIN LAYOUT ========== */
+.main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.panel-log {
+  flex: 1.2;
+  border-right: 1px solid var(--border);
+}
+
+.panel-tasks {
+  flex: 0.8;
+  min-width: 300px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+  font-size: 14px;
+  text-shadow: var(--text-glow);
+}
+
+.panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0;
+  min-height: 0;
+}
+
+/* ========== LOG PANEL ========== */
+.log-editor-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.log-current {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.log-textarea {
+  flex: 1;
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: none;
+  padding: 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  resize: none;
+  outline: none;
+  text-shadow: var(--text-glow);
+  tab-size: 4;
+}
+.log-textarea:focus {
+  background: var(--bg-input);
+}
+.log-textarea::placeholder {
+  color: var(--fg-dim);
+}
+
+.log-readonly {
+  padding: 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-shadow: var(--text-glow);
+  color: var(--fg);
+  user-select: text;
+}
+
+.log-readonly .code-block {
+  display: block;
+  border: 1px solid var(--fg-dim);
+  background: rgba(255,255,255,0.03);
+  padding: 8px 10px;
+  margin: 6px 0;
+  font-family: var(--font);
+  white-space: pre-wrap;
+}
+
+/* ========== HISTORY SECTIONS ========== */
+.history-sections {
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.history-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--bg-panel);
+  color: var(--fg);
+  border: none;
+  border-bottom: 1px solid var(--fg-dim);
+  padding: 5px 12px;
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  text-shadow: var(--text-glow);
+}
+.history-toggle:hover {
+  background: rgba(255,255,255,0.04);
+}
+.history-toggle .arrow {
+  margin-right: 6px;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.history-body {
+  display: none;
+  max-height: 200px;
+  overflow-y: auto;
+  border-bottom: 1px solid var(--fg-dim);
+}
+.history-body.open {
+  display: block;
+}
+
+/* ========== LOG PANEL FOOTER ========== */
+.log-footer {
+  display: flex;
+  gap: 4px;
+  padding: 6px 12px;
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+
+/* ========== TASK PANEL ========== */
+.task-input-row {
+  display: flex;
+  padding: 8px 10px;
+  gap: 6px;
+  border-bottom: 1px solid var(--fg-dim);
+  flex-shrink: 0;
+}
+
+.task-input {
+  flex: 1;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+  text-shadow: var(--text-glow);
+}
+.task-input:focus {
+  box-shadow: var(--glow);
+}
+.task-input::placeholder {
+  color: var(--fg-dim);
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  gap: 8px;
+  font-size: 14px;
+}
+.task-item:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.task-checkbox {
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: 16px;
+  flex-shrink: 0;
+  user-select: none;
+  text-shadow: var(--text-glow);
+}
+
+.task-title {
+  flex: 1;
+  word-break: break-word;
+  text-shadow: var(--text-glow);
+}
+
+.task-completed .task-title {
+  text-decoration: line-through;
+  color: var(--fg-dim);
+  text-shadow: none;
+}
+
+.task-delete {
+  background: none;
+  border: none;
+  color: var(--fg-dim);
+  font-family: var(--font);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 4px;
+  visibility: hidden;
+}
+.task-item:hover .task-delete {
+  visibility: visible;
+}
+.task-delete:hover {
+  color: var(--fg);
+  text-shadow: var(--text-glow);
+}
+
+.task-edit-input {
+  flex: 1;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--fg);
+  padding: 2px 6px;
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+  text-shadow: var(--text-glow);
+  box-shadow: var(--glow);
+}
+
+.task-title[data-editable="true"] {
+  cursor: text;
+}
+.task-title[data-editable="true"]:hover {
+  border-bottom: 1px dashed var(--fg-dim);
+}
+
+/* ========== SCRATCHPAD ========== */
+.scratchpad-wrap {
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.scratchpad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--fg-dim);
+}
+
+.scratchpad-controls {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.scratchpad-pin {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--fg-dim);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 0 5px;
+  cursor: pointer;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.scratchpad-pin:hover {
+  color: var(--fg);
+  border-color: var(--fg-dim);
+}
+.scratchpad-pin.pinned {
+  color: var(--fg);
+  border-color: var(--fg);
+}
+
+.scratchpad-expand {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--fg-dim);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 0 5px;
+  cursor: pointer;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.scratchpad-expand:hover {
+  color: var(--fg);
+  border-color: var(--fg-dim);
+}
+
+.scratchpad-textarea {
+  width: 100%;
+  height: 10.5em;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: none;
+  padding: 6px 10px;
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  text-shadow: var(--text-glow);
+  transition: height 0.15s ease;
+}
+.scratchpad-textarea.expanded {
+  height: 22em;
+}
+.scratchpad-textarea::placeholder {
+  color: var(--fg-dim);
+}
+
+.task-section-label {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--fg-dim);
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.task-empty {
+  padding: 12px 10px;
+  color: var(--fg-dim);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ========== STATUS BAR ========== */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+  font-size: 12px;
+  color: var(--fg-dim);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.statusbar-left, .statusbar-right {
+  display: flex;
+  gap: 16px;
+}
+
+/* ========== MODALS ========== */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: var(--bg);
+  border: 2px solid var(--border);
+  box-shadow: var(--glow), 0 0 40px rgba(0,0,0,0.8);
+  max-width: 700px;
+  width: 90%;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+}
+
+.modal-history {
+  max-width: 860px;
+  max-height: 88vh;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 16px;
+  text-shadow: var(--text-glow);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 18px;
+  cursor: pointer;
+}
+.modal-close:hover {
+  text-shadow: var(--text-glow);
+}
+
+.modal-body {
+  padding: 16px;
+  overflow-y: auto;
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  justify-content: flex-end;
+}
+
+/* ========== SEARCH ========== */
+.search-input {
+  width: 100%;
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  font-family: var(--font);
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 12px;
+  text-shadow: var(--text-glow);
+}
+.search-input:focus {
+  box-shadow: var(--glow);
+}
+
+.search-results {
+  list-style: none;
+}
+
+.search-result-item {
+  padding: 8px 10px;
+  border: 1px solid var(--fg-dim);
+  margin-bottom: 6px;
+  cursor: pointer;
+}
+.search-result-item:hover {
+  border-color: var(--fg);
+  background: rgba(255,255,255,0.04);
+  box-shadow: var(--glow);
+}
+
+.search-result-date {
+  font-size: 13px;
+  margin-bottom: 4px;
+  color: var(--fg-bright);
+  text-shadow: var(--text-glow);
+}
+
+.search-result-snippet {
+  font-size: 13px;
+  color: var(--fg-dim);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.search-highlight {
+  color: var(--fg-bright);
+  text-shadow: var(--text-glow);
+  font-weight: bold;
+}
+
+/* ========== HISTORY BROWSER MODAL ========== */
+.history-date-list {
+  list-style: none;
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--fg-dim);
+  margin-bottom: 12px;
+}
+
+.history-date-item {
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.history-date-item:hover, .history-date-item.selected {
+  background: var(--fg);
+  color: var(--bg);
+  text-shadow: none;
+}
+
+.history-detail {
+  border: 1px solid var(--fg-dim);
+  padding: 12px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.history-detail h4 {
+  margin-bottom: 6px;
+  text-shadow: var(--text-glow);
+}
+
+/* ========== SETTINGS ========== */
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.setting-label {
+  font-size: 14px;
+}
+
+.setting-control select {
+  background: var(--bg-input);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+.setting-control select:focus {
+  box-shadow: var(--glow);
+}
+
+.setting-control input[type="checkbox"] {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  cursor: pointer;
+  position: relative;
+}
+.setting-control input[type="checkbox"]:checked::after {
+  content: 'X';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 14px;
+}
+
+/* ========== EXPORT MODAL ========== */
+.export-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--fg-dim);
+  margin-bottom: 6px;
+  cursor: pointer;
+  gap: 8px;
+}
+.export-option:hover, .export-option.selected {
+  border-color: var(--fg);
+  background: rgba(255,255,255,0.04);
+}
+.export-option.selected {
+  box-shadow: var(--glow);
+}
+
+.export-radio {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.export-option.selected .export-radio::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg);
+}
+
+/* ========== NEW DAY CONFIRM ========== */
+.confirm-text {
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+/* ========== HOTKEY TABLE ========== */
+.hotkey-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.hotkey-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 13px;
+}
+.hotkey-table td:first-child {
+  color: var(--fg-dim);
+  width: 45%;
+}
+.hotkey-table td:nth-child(2) {
+  text-shadow: var(--text-glow);
+}
+.hotkey-table td:last-child {
+  width: 50px;
+  text-align: right;
+}
+
+.hotkey-edit-btn {
+  background: transparent;
+  border: 1px solid var(--fg-dim);
+  color: var(--fg-dim);
+  font-family: var(--font);
+  font-size: 11px;
+  padding: 1px 6px;
+  cursor: pointer;
+}
+.hotkey-edit-btn:hover {
+  border-color: var(--fg);
+  color: var(--fg);
+}
+
+.hotkey-capture {
+  background: var(--bg-input);
+  border: 1px solid var(--fg);
+  color: var(--fg-bright);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 2px 6px;
+  text-shadow: var(--text-glow);
+  box-shadow: var(--glow);
+  animation: blink 0.8s step-end infinite;
+}
+
+.about-section {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fg-dim);
+}
+
+.about-section p {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--fg-dim);
+  margin-bottom: 8px;
+}
+
+/* ========== BOOT SEQUENCE ========== */
+#boot-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: var(--bg);
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font);
+  color: var(--fg);
+  text-shadow: var(--text-glow);
+  cursor: pointer;
+}
+
+.boot-text {
+  font-size: 16px;
+  line-height: 1.8;
+  text-align: left;
+  white-space: pre;
+}
+
+.boot-cursor {
+  display: inline-block;
+  animation: blink 0.7s step-end infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+/* ========== PANEL FOCUS ========== */
+.panel.focused .panel-header {
+  background: rgba(255,255,255,0.04);
+}
+
+/* ========== UTILITY ========== */
+.hidden { display: none !important; }
+.mt-8 { margin-top: 8px; }
+.mb-8 { margin-bottom: 8px; }
+.text-dim { color: var(--fg-dim); }
+.text-center { text-align: center; }
+
+/* ========== DAY TRANSITION ANIMATION ========== */
+@keyframes flash {
+  0% { opacity: 1; }
+  25% { opacity: 0.3; }
+  50% { opacity: 1; }
+  75% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+.day-flash {
+  animation: flash 0.4s ease-out;
+}
+</style>
+</head>
+<body>
+<!-- BOOT SCREEN -->
+<div id="boot-screen">
+  <div class="boot-text" id="boot-text"></div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="crt-vignette" id="crt-vignette"></div>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-title">log.os()</div>
+    <div class="header-middle">
+      <div class="header-quote" id="header-quote"></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn" id="btn-new-day" title="Initiate New Day (Ctrl+Shift+Enter)">[New Day]</button>
+      <button class="btn" id="btn-theme" title="Cycle Theme (Ctrl+Shift+T)">[Theme]</button>
+      <button class="btn" id="btn-settings" title="Settings (Ctrl+,)">[Settings]</button>
+      <button class="btn" id="btn-hotkeys" title="Hotkey Reference">[Hotkeys]</button>
+      <button class="btn" id="btn-export" title="Export (Ctrl+Shift+E)">[Export]</button>
+    </div>
+  </div>
+
+  <!-- MAIN PANELS -->
+  <div class="main">
+    <!-- LOG PANEL -->
+    <div class="panel panel-log focused" id="panel-log" tabindex="0">
+      <div class="panel-header">
+        <span id="log-date-label">LOG // <span id="log-current-date"></span></span>
+        <span id="log-save-status" class="text-dim">saved</span>
+      </div>
+      <div class="panel-content">
+        <div class="log-editor-wrap">
+          <div class="log-current">
+            <textarea class="log-textarea" id="log-textarea" placeholder="Start typing your log for today..."></textarea>
+          </div>
+          <div class="history-sections" id="log-history-sections"></div>
+        </div>
+      </div>
+      <div class="log-footer">
+        <button class="btn" id="btn-search" title="Search Logs (Ctrl+Shift+F)">[Search]</button>
+        <button class="btn" id="btn-history" title="History Browser (Ctrl+Shift+H)">[History]</button>
+      </div>
+    </div>
+
+    <!-- TASK PANEL -->
+    <div class="panel panel-tasks" id="panel-tasks" tabindex="0">
+      <div class="panel-header">
+        <span>TASKS // <span id="task-current-date"></span></span>
+        <span id="task-count" class="text-dim"></span>
+      </div>
+      <div class="task-input-row">
+        <input type="text" class="task-input" id="task-input" placeholder="+ Add task..." />
+        <button class="btn" id="btn-add-task">[+]</button>
+      </div>
+      <div class="panel-content" id="task-panel-content">
+        <div id="task-list-container"></div>
+        <div class="history-sections" id="task-history-sections"></div>
+      </div>
+      <div class="scratchpad-wrap">
+        <div class="scratchpad-header">
+          <span>Scratchpad</span>
+          <div class="scratchpad-controls">
+            <button class="scratchpad-expand" id="scratchpad-expand" title="Expand/collapse scratchpad">[^]</button>
+            <button class="scratchpad-pin" id="scratchpad-pin" title="Pin: keep across days">[pin]</button>
+          </div>
+        </div>
+        <textarea class="scratchpad-textarea" id="scratchpad" placeholder="Quick notes (resets daily)..." maxlength="2000"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="statusbar">
+    <div class="statusbar-left">
+      <span id="status-focus">LOG</span>
+      <span id="status-hint">Ctrl+1/2: Switch Panel</span>
+    </div>
+    <div class="statusbar-right">
+      <span id="status-storage"></span>
+      <span id="status-theme"></span>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- SEARCH MODAL -->
+<div class="modal-overlay" id="modal-search">
+  <div class="modal">
+    <div class="modal-header">
+      <span>[SEARCH LOGS]</span>
+      <button class="modal-close" id="close-search">[X]</button>
+    </div>
+    <div class="modal-body">
+      <input type="text" class="search-input" id="search-input" placeholder="Search across all logs..." autofocus />
+      <ul class="search-results" id="search-results"></ul>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div class="modal-overlay" id="modal-history">
+  <div class="modal modal-history">
+    <div class="modal-header">
+      <span>[HISTORY BROWSER]</span>
+      <button class="modal-close" id="close-history">[X]</button>
+    </div>
+    <div class="modal-body">
+      <ul class="history-date-list" id="history-date-list"></ul>
+      <div class="history-detail" id="history-detail">
+        <div class="text-dim text-center">Select a date to view</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOTKEYS MODAL -->
+<div class="modal-overlay" id="modal-hotkeys">
+  <div class="modal">
+    <div class="modal-header">
+      <span>[KEYBOARD SHORTCUTS]</span>
+      <button class="modal-close" id="close-hotkeys">[X]</button>
+    </div>
+    <div class="modal-body">
+      <p class="text-dim mb-8" style="font-size:12px;">Click [edit] to rebind a shortcut. Press new key combination, then Enter to save or Escape to cancel.</p>
+      <table class="hotkey-table" id="hotkey-table-body">
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btn-reset-hotkeys">[Reset Defaults]</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="modal">
+    <div class="modal-header">
+      <span>[SETTINGS]</span>
+      <button class="modal-close" id="close-settings">[X]</button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-row">
+        <span class="setting-label">Theme</span>
+        <span class="setting-control">
+          <select id="setting-theme">
+            <option value="green">Green Screen</option>
+            <option value="amber">Amber</option>
+            <option value="sepia">IBM 5151 / Sepia</option>
+            <option value="blue">Cool Blue</option>
+            <option value="wyse">Wyse 60</option>
+            <option value="c64">Commodore 64</option>
+            <option value="apple2">Apple II</option>
+            <option value="paperwhite">Paper White</option>
+            <option value="kindle">Kindle</option>
+          </select>
+        </span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Scanlines</span>
+        <span class="setting-control">
+          <input type="checkbox" id="setting-scanlines" checked />
+        </span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">CRT Vignette</span>
+        <span class="setting-control">
+          <input type="checkbox" id="setting-vignette" checked />
+        </span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Tab Key Inserts</span>
+        <span class="setting-control">
+          <select id="setting-tab">
+            <option value="tab">Tab Character</option>
+            <option value="spaces">4 Spaces</option>
+          </select>
+        </span>
+      </div>
+      <div class="setting-row">
+        <span class="setting-label">Autosave Delay (ms)</span>
+        <span class="setting-control">
+          <select id="setting-autosave">
+            <option value="500">500</option>
+            <option value="1000" selected>1000</option>
+            <option value="2000">2000</option>
+          </select>
+        </span>
+      </div>
+      <div class="about-section">
+        <p><strong>About log.os()</strong> <span class="text-dim" id="about-version"></span> &mdash; Created by Kevin Guyer &mdash; <span class="text-dim">Get the latest from <a href="https://github.com/kevinguyer/logos" target="_blank" rel="noopener" style="color:var(--fg-dim);text-decoration:underline;">github.com/kevinguyer/logos</a></span></p>
+        <p>log.os() is a lightweight daily task and note/log manager created with Claude Code to run and store data locally in the browser.</p>
+        <p>Inspiration comes from "Logos", the Greek word for "word" or "reason," a rhetorical appeal to logic and reason, embracing facts, statistics, data, and clear, logical connections.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-header">
+      <span>[EXPORT / BACKUP]</span>
+      <button class="modal-close" id="close-export">[X]</button>
+    </div>
+    <div class="modal-body">
+      <p class="mb-8">Export all log data as a Markdown file. Choose a cleanup option after export:</p>
+      <div class="export-option selected" data-cleanup="none">
+        <div class="export-radio"></div>
+        <div>
+          <div>No Cleanup</div>
+          <div class="text-dim" style="font-size:12px;">Export only, keep all data</div>
+        </div>
+      </div>
+      <div class="export-option" data-cleanup="partial">
+        <div class="export-radio"></div>
+        <div>
+          <div>Partial Cleanup</div>
+          <div class="text-dim" style="font-size:12px;">After export, purge data older than 90 days</div>
+        </div>
+      </div>
+      <div class="export-option" data-cleanup="full">
+        <div class="export-radio"></div>
+        <div>
+          <div>Full Cleanup</div>
+          <div class="text-dim" style="font-size:12px;">After export, purge data older than 30 days</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" id="btn-do-export">[Export]</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW DAY CONFIRM MODAL -->
+<div class="modal-overlay" id="modal-newday">
+  <div class="modal">
+    <div class="modal-header">
+      <span>[INITIATE NEW DAY]</span>
+      <button class="modal-close" id="close-newday">[X]</button>
+    </div>
+    <div class="modal-body">
+      <div class="confirm-text" id="newday-info"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="btn-cancel-newday">[Cancel]</button>
+      <button class="btn btn-primary" id="btn-confirm-newday">[Confirm]</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================================================================
+// log.os() — Main Application
+// ========================================================================
+
+(function() {
+  'use strict';
+
+  const APP_VERSION = '1.6.0';
+
+  // ─── Storage Helpers ───────────────────────────────────────────────
+  const KEYS = {
+    currentDay: 'logos:currentDay',
+    settings: 'logos:settings',
+    log: (date) => `logos:log:${date}`,
+    tasks: (date) => `logos:tasks:${date}`,
+    scratchpad: 'logos:scratchpad',
+    scratchpadDay: 'logos:scratchpadDay',
+  };
+
+  function store(key, value) {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    } catch (e) {
+      console.error('Storage write failed:', e);
+      return false;
+    }
+  }
+
+  function load(key, fallback) {
+    try {
+      const raw = localStorage.getItem(key);
+      return raw !== null ? JSON.parse(raw) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function remove(key) {
+    localStorage.removeItem(key);
+  }
+
+  function todayISO() {
+    const d = new Date();
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+
+  function uuid() {
+    return crypto.randomUUID ? crypto.randomUUID() :
+      'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+      });
+  }
+
+  function getAllDates() {
+    const dates = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const m = key.match(/^logos:log:(\d{4}-\d{2}-\d{2})$/);
+      if (m) dates.push(m[1]);
+    }
+    // Also check tasks keys for days with tasks but no log
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      const m = key.match(/^logos:tasks:(\d{4}-\d{2}-\d{2})$/);
+      if (m && !dates.includes(m[1])) dates.push(m[1]);
+    }
+    dates.sort((a, b) => b.localeCompare(a)); // most recent first
+    return dates;
+  }
+
+  function getStorageUsed() {
+    let total = 0;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('logos:')) {
+        total += key.length + (localStorage.getItem(key) || '').length;
+      }
+    }
+    return total;
+  }
+
+  function formatBytes(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+  }
+
+  // ─── Settings ──────────────────────────────────────────────────────
+  // ─── Hotkey Definitions ─────────────────────────────────────────
+  const hotkeyActions = [
+    { id: 'focusLog',     label: 'Focus Log Panel',       defaultBinding: 'ctrl+1' },
+    { id: 'focusTasks',   label: 'Focus Task Panel',      defaultBinding: 'ctrl+2' },
+    { id: 'addTask',      label: 'Add New Task',          defaultBinding: 'ctrl+shift+n' },
+    { id: 'completeTask', label: 'Complete First Task',   defaultBinding: 'ctrl+shift+d' },
+    { id: 'newDay',       label: 'Initiate New Day',      defaultBinding: 'ctrl+shift+enter' },
+    { id: 'search',       label: 'Search Logs',           defaultBinding: 'ctrl+shift+f' },
+    { id: 'history',      label: 'History Browser',       defaultBinding: 'ctrl+shift+h' },
+    { id: 'settings',     label: 'Settings',              defaultBinding: 'ctrl+,' },
+    { id: 'cycleTheme',   label: 'Cycle Theme',           defaultBinding: 'ctrl+shift+t' },
+    { id: 'export',       label: 'Export',                defaultBinding: 'ctrl+shift+e' },
+  ];
+
+  function getDefaultHotkeys() {
+    const hk = {};
+    hotkeyActions.forEach(a => { hk[a.id] = a.defaultBinding; });
+    return hk;
+  }
+
+  const defaultSettings = {
+    theme: 'green',
+    scanlines: true,
+    vignette: true,
+    tabInsert: 'tab',
+    autosaveDelay: 1000,
+    hotkeys: getDefaultHotkeys(),
+  };
+
+  let settings = { ...defaultSettings, ...load(KEYS.settings, {}) };
+  // Ensure hotkeys exist (migration from older settings)
+  if (!settings.hotkeys) settings.hotkeys = getDefaultHotkeys();
+  hotkeyActions.forEach(a => {
+    if (!settings.hotkeys[a.id]) settings.hotkeys[a.id] = a.defaultBinding;
+  });
+
+  function saveSettings() {
+    store(KEYS.settings, settings);
+  }
+
+  // ─── Theme ─────────────────────────────────────────────────────────
+  const themes = ['green', 'amber', 'sepia', 'blue', 'wyse', 'c64', 'apple2', 'paperwhite', 'kindle'];
+  const themeNames = { green: 'Green Screen', amber: 'Amber', sepia: 'IBM 5151', blue: 'Cool Blue', wyse: 'Wyse 60', c64: 'C64', apple2: 'Apple II', paperwhite: 'Paper White', kindle: 'Kindle' };
+
+  function applyTheme(themeName) {
+    if (themeName === 'green') {
+      document.documentElement.removeAttribute('data-theme');
+    } else {
+      document.documentElement.setAttribute('data-theme', themeName);
+    }
+    settings.theme = themeName;
+    saveSettings();
+    document.getElementById('setting-theme').value = themeName;
+    document.getElementById('status-theme').textContent = themeNames[themeName] || themeName;
+    // Re-apply scanlines so theme-specific defaults (e.g. Kindle: off) take effect
+    document.documentElement.style.removeProperty('--scanline-opacity');
+    if (settings.scanlines) {
+      document.documentElement.style.setProperty('--scanline-opacity', '0.04');
+    }
+    document.getElementById('setting-scanlines').checked = settings.scanlines;
+  }
+
+  function cycleTheme() {
+    const idx = themes.indexOf(settings.theme);
+    const next = themes[(idx + 1) % themes.length];
+    applyTheme(next);
+  }
+
+  // ─── State ─────────────────────────────────────────────────────────
+  let currentDay = load(KEYS.currentDay, null);
+  let currentTasks = [];
+  let autosaveTimer = null;
+  let focusedPanel = 'log'; // 'log' or 'tasks'
+  let selectedTaskIdx = -1;
+
+  function initializeDay() {
+    if (!currentDay) {
+      currentDay = todayISO();
+      store(KEYS.currentDay, currentDay);
+    }
+    currentTasks = load(KEYS.tasks(currentDay), []);
+  }
+
+  // ─── Tasks ─────────────────────────────────────────────────────────
+  function saveTasks() {
+    store(KEYS.tasks(currentDay), currentTasks);
+  }
+
+  function addTask(title) {
+    if (!title.trim()) return;
+    currentTasks.push({
+      id: uuid(),
+      title: title.trim(),
+      status: 'open',
+      createdDate: currentDay,
+      completedDate: null,
+    });
+    saveTasks();
+    renderTasks();
+  }
+
+  function completeTask(id) {
+    const task = currentTasks.find(t => t.id === id);
+    if (task && task.status === 'open') {
+      task.status = 'complete';
+      task.completedDate = todayISO();
+      saveTasks();
+      renderTasks();
+    }
+  }
+
+  function uncompleteTask(id) {
+    const task = currentTasks.find(t => t.id === id);
+    if (task && task.status === 'complete') {
+      task.status = 'open';
+      task.completedDate = null;
+      saveTasks();
+      renderTasks();
+    }
+  }
+
+  function deleteTask(id) {
+    const task = currentTasks.find(t => t.id === id);
+    if (task && task.status === 'open') {
+      currentTasks = currentTasks.filter(t => t.id !== id);
+      saveTasks();
+      renderTasks();
+    }
+  }
+
+  function editTask(id) {
+    const task = currentTasks.find(t => t.id === id);
+    if (!task) return;
+    const titleEl = document.querySelector(`.task-item[data-id="${id}"] .task-title`);
+    if (!titleEl) return;
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'task-edit-input';
+    input.value = task.title;
+    titleEl.replaceWith(input);
+    input.focus();
+    input.select();
+
+    function commit() {
+      const newTitle = input.value.trim();
+      if (newTitle && newTitle !== task.title) {
+        task.title = newTitle;
+        saveTasks();
+      }
+      renderTasks();
+    }
+
+    input.addEventListener('blur', commit);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { input.value = task.title; input.blur(); }
+    });
+  }
+
+  function renderTasks() {
+    const container = document.getElementById('task-list-container');
+    const openTasks = currentTasks.filter(t => t.status === 'open');
+    const completedTasks = currentTasks.filter(t => t.status === 'complete');
+
+    let html = '';
+
+    if (openTasks.length === 0 && completedTasks.length === 0) {
+      html = '<div class="task-empty">No tasks yet. Add one above.</div>';
+    }
+
+    if (openTasks.length > 0) {
+      html += '<div class="task-section-label">Open</div>';
+      html += '<ul class="task-list">';
+      openTasks.forEach((task, i) => {
+        html += `<li class="task-item" data-id="${task.id}" data-idx="${i}">
+          <span class="task-checkbox" data-action="toggle">[ ]</span>
+          <span class="task-title" data-editable="true">${escapeHtml(task.title)}</span>
+          <button class="task-delete" data-action="delete" title="Delete task">[x]</button>
+        </li>`;
+      });
+      html += '</ul>';
+    }
+
+    if (completedTasks.length > 0) {
+      html += '<div class="task-section-label">Completed Today</div>';
+      html += '<ul class="task-list">';
+      completedTasks.forEach(task => {
+        html += `<li class="task-item task-completed" data-id="${task.id}">
+          <span class="task-checkbox" data-action="toggle">[X]</span>
+          <span class="task-title">${escapeHtml(task.title)}</span>
+        </li>`;
+      });
+      html += '</ul>';
+    }
+
+    container.innerHTML = html;
+
+    // Task count
+    document.getElementById('task-count').textContent =
+      `${openTasks.length} open / ${completedTasks.length} done`;
+
+    // Click handlers
+    container.querySelectorAll('.task-checkbox[data-action="toggle"]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.closest('.task-item').dataset.id;
+        const task = currentTasks.find(t => t.id === id);
+        if (task) {
+          if (task.status === 'open') completeTask(id);
+          else uncompleteTask(id);
+        }
+      });
+    });
+
+    container.querySelectorAll('.task-delete[data-action="delete"]').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = el.closest('.task-item').dataset.id;
+        deleteTask(id);
+      });
+    });
+
+    // Double-click to edit task title
+    container.querySelectorAll('.task-title[data-editable="true"]').forEach(el => {
+      el.addEventListener('dblclick', () => {
+        const id = el.closest('.task-item').dataset.id;
+        editTask(id);
+      });
+    });
+  }
+
+  // ─── Scratchpad ─────────────────────────────────────────────────
+  function isScratchpadPinned() {
+    return load('logos:scratchpadPinned', false);
+  }
+
+  function setScratchpadPinned(pinned) {
+    store('logos:scratchpadPinned', pinned);
+    updatePinUI();
+  }
+
+  function updatePinUI() {
+    const btn = document.getElementById('scratchpad-pin');
+    const pinned = isScratchpadPinned();
+    btn.classList.toggle('pinned', pinned);
+    btn.textContent = pinned ? '[pinned]' : '[pin]';
+    btn.title = pinned ? 'Pinned: persists across days' : 'Pin: keep across days';
+    document.getElementById('scratchpad').placeholder = pinned
+      ? 'Quick notes (persists across days)...'
+      : 'Quick notes (resets daily)...';
+  }
+
+  function loadScratchpad() {
+    const savedDay = load(KEYS.scratchpadDay, null);
+    const el = document.getElementById('scratchpad');
+    if (savedDay !== currentDay && !isScratchpadPinned()) {
+      // New day and not pinned — reset scratchpad
+      store(KEYS.scratchpad, '');
+      store(KEYS.scratchpadDay, currentDay);
+      el.value = '';
+    } else {
+      el.value = load(KEYS.scratchpad, '') || '';
+      store(KEYS.scratchpadDay, currentDay);
+    }
+    updatePinUI();
+  }
+
+  function saveScratchpad() {
+    store(KEYS.scratchpad, document.getElementById('scratchpad').value);
+    store(KEYS.scratchpadDay, currentDay);
+  }
+
+  // ─── Log ───────────────────────────────────────────────────────────
+  function loadLog() {
+    const logData = load(KEYS.log(currentDay), { date: currentDay, content: '', lastModified: null });
+    document.getElementById('log-textarea').value = logData.content || '';
+  }
+
+  function saveLog() {
+    const content = document.getElementById('log-textarea').value;
+    store(KEYS.log(currentDay), {
+      date: currentDay,
+      content: content,
+      lastModified: new Date().toISOString(),
+    });
+    document.getElementById('log-save-status').textContent = 'saved';
+  }
+
+  function scheduleAutosave() {
+    document.getElementById('log-save-status').textContent = 'editing...';
+    if (autosaveTimer) clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(() => {
+      saveLog();
+    }, settings.autosaveDelay);
+  }
+
+  // ─── Code block rendering for read-only logs ──────────────────────
+  function renderLogContent(text) {
+    // Split by triple backticks and render code blocks
+    const parts = text.split(/(```[\s\S]*?```)/g);
+    let html = '';
+    parts.forEach(part => {
+      if (part.startsWith('```') && part.endsWith('```')) {
+        const code = part.slice(3, -3).replace(/^\n/, '');
+        html += `<span class="code-block">${escapeHtml(code)}</span>`;
+      } else {
+        html += escapeHtml(part);
+      }
+    });
+    return html;
+  }
+
+  // ─── Recent History (last 7 active days) ───────────────────────────
+  function renderRecentHistory() {
+    const allDates = getAllDates().filter(d => d !== currentDay);
+    const recentDates = allDates.slice(0, 7);
+
+    // Log history
+    const logHistSections = document.getElementById('log-history-sections');
+    let logHtml = '';
+    recentDates.forEach(date => {
+      const logData = load(KEYS.log(date), null);
+      const content = logData ? (logData.content || '') : '';
+      logHtml += `<button class="history-toggle" data-date="${date}">
+        <span class="arrow">&gt;</span>${date}
+      </button>
+      <div class="history-body" data-date="${date}">
+        <div class="log-readonly">${content ? renderLogContent(content) : '<span class="text-dim">(no log)</span>'}</div>
+      </div>`;
+    });
+    logHistSections.innerHTML = logHtml;
+
+    // Task history
+    const taskHistSections = document.getElementById('task-history-sections');
+    let taskHtml = '';
+    recentDates.forEach(date => {
+      const tasks = load(KEYS.tasks(date), []);
+      let taskContent = '';
+      if (tasks.length === 0) {
+        taskContent = '<div class="task-empty text-dim">(no tasks)</div>';
+      } else {
+        taskContent = '<ul class="task-list">';
+        tasks.forEach(t => {
+          const cls = t.status === 'complete' ? 'task-completed' : '';
+          const chk = t.status === 'complete' ? '[X]' : '[ ]';
+          taskContent += `<li class="task-item ${cls}">
+            <span class="task-checkbox">${chk}</span>
+            <span class="task-title">${escapeHtml(t.title)}</span>
+          </li>`;
+        });
+        taskContent += '</ul>';
+      }
+      taskHtml += `<button class="history-toggle" data-date="${date}">
+        <span class="arrow">&gt;</span>${date}
+      </button>
+      <div class="history-body" data-date="${date}">${taskContent}</div>`;
+    });
+    taskHistSections.innerHTML = taskHtml;
+
+    // Toggle handlers
+    document.querySelectorAll('.history-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const date = btn.dataset.date;
+        // Toggle all bodies with same date
+        document.querySelectorAll(`.history-body[data-date="${date}"]`).forEach(body => {
+          body.classList.toggle('open');
+        });
+        // Toggle all arrows with same date
+        document.querySelectorAll(`.history-toggle[data-date="${date}"] .arrow`).forEach(arrow => {
+          arrow.textContent = arrow.textContent === '>' ? 'v' : '>';
+        });
+      });
+    });
+  }
+
+  // ─── Day Transition ────────────────────────────────────────────────
+  function initiateNewDay() {
+    const openTasks = currentTasks.filter(t => t.status === 'open');
+    const completedTasks = currentTasks.filter(t => t.status === 'complete');
+    const newDate = todayISO();
+
+    const infoEl = document.getElementById('newday-info');
+    infoEl.innerHTML = `
+      <div>Current day: <strong>${currentDay}</strong></div>
+      <div>New day: <strong>${newDate}</strong></div>
+      <div class="mt-8">${completedTasks.length} completed task(s) will be archived.</div>
+      <div>${openTasks.length} open task(s) will carry forward.</div>
+    `;
+    openModal('modal-newday');
+  }
+
+  function confirmNewDay() {
+    const newDate = todayISO();
+
+    // Save current log one final time
+    saveLog();
+
+    // Archive current day — it's already saved, just freeze it
+    // Carry forward open tasks
+    const openTasks = currentTasks.filter(t => t.status === 'open').map(t => ({
+      ...t,
+      // Keep original created date
+    }));
+
+    // Set new day
+    currentDay = newDate;
+    store(KEYS.currentDay, currentDay);
+
+    // Initialize new day with carried-forward tasks
+    currentTasks = openTasks;
+    saveTasks();
+
+    // Clear new day log (start fresh)
+    store(KEYS.log(currentDay), { date: currentDay, content: '', lastModified: new Date().toISOString() });
+
+    // Reset scratchpad for new day (unless pinned)
+    if (!isScratchpadPinned()) {
+      store(KEYS.scratchpad, '');
+    }
+    store(KEYS.scratchpadDay, currentDay);
+
+    // Refresh UI
+    refreshUI();
+    closeAllModals();
+
+    // Flash animation
+    document.getElementById('app').classList.add('day-flash');
+    setTimeout(() => document.getElementById('app').classList.remove('day-flash'), 500);
+  }
+
+  // ─── Search ────────────────────────────────────────────────────────
+  function performSearch(query) {
+    const results = document.getElementById('search-results');
+    if (!query.trim()) {
+      results.innerHTML = '<div class="text-dim text-center">Type to search...</div>';
+      return;
+    }
+
+    const allDates = getAllDates();
+    const matches = [];
+    const lowerQuery = query.toLowerCase();
+
+    allDates.forEach(date => {
+      const logData = load(KEYS.log(date), null);
+      if (!logData || !logData.content) return;
+      const content = logData.content;
+      const lowerContent = content.toLowerCase();
+      const idx = lowerContent.indexOf(lowerQuery);
+      if (idx === -1) return;
+
+      // Extract snippet
+      const start = Math.max(0, idx - 40);
+      const end = Math.min(content.length, idx + query.length + 40);
+      let snippet = (start > 0 ? '...' : '') +
+        content.substring(start, end) +
+        (end < content.length ? '...' : '');
+
+      matches.push({ date, snippet, idx, query });
+    });
+
+    if (matches.length === 0) {
+      results.innerHTML = '<div class="text-dim text-center">No matches found.</div>';
+      return;
+    }
+
+    let html = '';
+    matches.forEach(m => {
+      // Highlight match in snippet
+      const snippetHtml = highlightMatch(m.snippet, m.query);
+      html += `<li class="search-result-item" data-date="${m.date}">
+        <div class="search-result-date">${m.date}</div>
+        <div class="search-result-snippet">${snippetHtml}</div>
+      </li>`;
+    });
+    results.innerHTML = html;
+
+    // Click handlers
+    results.querySelectorAll('.search-result-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const date = el.dataset.date;
+        closeAllModals();
+        viewHistoryDay(date);
+      });
+    });
+  }
+
+  function highlightMatch(text, query) {
+    const escaped = escapeHtml(text);
+    const escapedQuery = escapeHtml(query);
+    const regex = new RegExp(`(${escapeRegex(escapedQuery)})`, 'gi');
+    return escaped.replace(regex, '<span class="search-highlight">$1</span>');
+  }
+
+  function escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  // ─── History Browser ──────────────────────────────────────────────
+  function openHistoryBrowser() {
+    const allDates = getAllDates();
+    const list = document.getElementById('history-date-list');
+
+    if (allDates.length === 0) {
+      list.innerHTML = '<li class="history-date-item text-dim">No history entries.</li>';
+    } else {
+      list.innerHTML = allDates.map(d =>
+        `<li class="history-date-item" data-date="${d}">${d}${d === currentDay ? ' (current)' : ''}</li>`
+      ).join('');
+    }
+
+    document.getElementById('history-detail').innerHTML =
+      '<div class="text-dim text-center">Select a date to view</div>';
+
+    list.querySelectorAll('.history-date-item[data-date]').forEach(el => {
+      el.addEventListener('click', () => {
+        list.querySelectorAll('.history-date-item').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        showHistoryDetail(el.dataset.date);
+      });
+    });
+
+    openModal('modal-history');
+  }
+
+  function showHistoryDetail(date) {
+    const detail = document.getElementById('history-detail');
+    const logData = load(KEYS.log(date), null);
+    const tasks = load(KEYS.tasks(date), []);
+
+    let html = `<h4>// ${date}</h4>`;
+
+    // Tasks
+    if (tasks.length > 0) {
+      html += '<div class="task-section-label mt-8">Tasks</div><ul class="task-list">';
+      tasks.forEach(t => {
+        const cls = t.status === 'complete' ? 'task-completed' : '';
+        const chk = t.status === 'complete' ? '[X]' : '[ ]';
+        html += `<li class="task-item ${cls}">
+          <span class="task-checkbox">${chk}</span>
+          <span class="task-title">${escapeHtml(t.title)}</span>
+        </li>`;
+      });
+      html += '</ul>';
+    }
+
+    // Log
+    html += '<div class="task-section-label mt-8">Log</div>';
+    if (logData && logData.content) {
+      html += `<div class="log-readonly">${renderLogContent(logData.content)}</div>`;
+    } else {
+      html += '<div class="text-dim" style="padding:8px">(no log entry)</div>';
+    }
+
+    detail.innerHTML = html;
+  }
+
+  function viewHistoryDay(date) {
+    // If it's the current day, just focus the log
+    if (date === currentDay) {
+      setFocus('log');
+      return;
+    }
+    // Open history modal focused on this date
+    openHistoryBrowser();
+    setTimeout(() => {
+      const item = document.querySelector(`.history-date-item[data-date="${date}"]`);
+      if (item) {
+        item.click();
+        item.scrollIntoView({ block: 'nearest' });
+      }
+    }, 50);
+  }
+
+  // ─── Export ────────────────────────────────────────────────────────
+  let exportCleanup = 'none';
+
+  function doExport() {
+    const allDates = getAllDates(); // already sorted most recent first
+    let md = '';
+
+    allDates.forEach(date => {
+      md += `# ${date}\n\n`;
+
+      const tasks = load(KEYS.tasks(date), []);
+      const completedTasks = tasks.filter(t => t.status === 'complete');
+      if (completedTasks.length > 0) {
+        md += '## Completed Tasks\n\n';
+        completedTasks.forEach(t => {
+          md += `- ${t.title}\n`;
+        });
+        md += '\n';
+      }
+
+      const logData = load(KEYS.log(date), null);
+      if (logData && logData.content && logData.content.trim()) {
+        md += '## Log\n\n';
+        md += logData.content + '\n\n';
+      }
+
+      md += '---\n\n';
+    });
+
+    // Download file
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `log-os-export-${todayISO()}.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Cleanup
+    if (exportCleanup !== 'none') {
+      const daysToKeep = exportCleanup === 'partial' ? 90 : 30;
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - daysToKeep);
+      const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+      allDates.forEach(date => {
+        if (date < cutoffStr && date !== currentDay) {
+          remove(KEYS.log(date));
+          remove(KEYS.tasks(date));
+        }
+      });
+
+      renderRecentHistory();
+      updateStorageStatus();
+    }
+
+    closeAllModals();
+  }
+
+  // ─── UI Helpers ────────────────────────────────────────────────────
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function openModal(id) {
+    document.getElementById(id).classList.add('active');
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+  }
+
+  function setFocus(panel) {
+    focusedPanel = panel;
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('focused'));
+    if (panel === 'log') {
+      document.getElementById('panel-log').classList.add('focused');
+      document.getElementById('log-textarea').focus();
+      document.getElementById('status-focus').textContent = 'LOG';
+    } else {
+      document.getElementById('panel-tasks').classList.add('focused');
+      document.getElementById('task-input').focus();
+      document.getElementById('status-focus').textContent = 'TASKS';
+    }
+  }
+
+  function updateStorageStatus() {
+    const used = getStorageUsed();
+    document.getElementById('status-storage').textContent = 'Storage: ' + formatBytes(used);
+  }
+
+  function refreshUI() {
+    document.getElementById('log-current-date').textContent = currentDay;
+    document.getElementById('task-current-date').textContent = currentDay;
+    loadLog();
+    loadScratchpad();
+    renderTasks();
+    renderRecentHistory();
+    updateStorageStatus();
+  }
+
+  // ─── Settings Sync ────────────────────────────────────────────────
+  function applyScanlines(on) {
+    document.documentElement.style.setProperty('--scanline-opacity', on ? '0.04' : '0');
+    settings.scanlines = on;
+    saveSettings();
+  }
+
+  function applyVignette(on) {
+    document.getElementById('crt-vignette').style.display = on ? '' : 'none';
+    settings.vignette = on;
+    saveSettings();
+  }
+
+  // ─── Boot Sequence ────────────────────────────────────────────────
+  function runBootSequence() {
+    const bootScreen = document.getElementById('boot-screen');
+    const bootText = document.getElementById('boot-text');
+    const lines = [
+      `LOGOS SYSTEMS v${APP_VERSION}`,
+      'Initializing memory banks...',
+      'Loading localStorage driver... OK',
+      `Date: ${todayISO()}`,
+      'Terminal ready.',
+      '',
+      '> log.os()',
+    ];
+
+    let lineIdx = 0;
+    let charIdx = 0;
+    let output = '';
+
+    function type() {
+      if (lineIdx >= lines.length) {
+        setTimeout(() => {
+          bootScreen.classList.add('hidden');
+          document.getElementById('app').classList.remove('hidden');
+          initApp();
+        }, 400);
+        return;
+      }
+
+      const line = lines[lineIdx];
+      if (charIdx <= line.length) {
+        bootText.innerHTML = output + line.substring(0, charIdx) + '<span class="boot-cursor">_</span>';
+        charIdx++;
+        setTimeout(type, 20 + Math.random() * 20);
+      } else {
+        output += line + '\n';
+        lineIdx++;
+        charIdx = 0;
+        setTimeout(type, 100 + Math.random() * 100);
+      }
+    }
+
+    // Click to skip
+    bootScreen.addEventListener('click', () => {
+      bootScreen.classList.add('hidden');
+      document.getElementById('app').classList.remove('hidden');
+      initApp();
+    });
+
+    type();
+  }
+
+  // ─── Header Quotes (Cipher Decode) ─────────────────────────────────
+  const logosQuotes = [
+    'The unexamined day is not worth logging.',
+    'Order emerges from the act of writing it down.',
+    'First, observe. Then, record. Then, understand.',
+    'Reason is the architecture of all progress.',
+    'A task named is a task half-conquered.',
+    'Clarity begins where ambiguity is committed to text.',
+    'The log remembers what the mind forgets.',
+    'Structure your days, or they will structure you.',
+    'What is measured by attention is mastered by will.',
+    'Every entry is a small act of sovereignty.',
+    'Thought without record dissolves like smoke.',
+    'To plan is to argue with entropy, and win.',
+    'The present is the only writable buffer.',
+    'Discipline is memory made actionable.',
+    'Completion is not an event. It is a decision.',
+    'A system that serves you is a system worth keeping.',
+  ];
+
+  const CIPHER_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*!?<>/\\|{}[]~^';
+  let quoteInterval = null;
+  let currentQuoteIdx = -1;
+
+  function pickNextQuote() {
+    let next;
+    do {
+      next = Math.floor(Math.random() * logosQuotes.length);
+    } while (next === currentQuoteIdx && logosQuotes.length > 1);
+    currentQuoteIdx = next;
+    return logosQuotes[next];
+  }
+
+  function cipherDecode(targetText, el) {
+    const len = targetText.length;
+    const resolved = new Array(len).fill(false);
+    const display = new Array(len);
+    const tickMs = 45;
+
+    // Assign each character a resolve time using an exponential curve:
+    // Most chars resolve in 1-4s, a few stragglers drag out to 6-8s
+    const resolveTick = new Array(len);
+    for (let i = 0; i < len; i++) {
+      if (targetText[i] === ' ' || targetText[i] === '.' || targetText[i] === ',') {
+        display[i] = targetText[i];
+        resolved[i] = true;
+        resolveTick[i] = 0;
+      } else {
+        display[i] = CIPHER_CHARS[Math.floor(Math.random() * CIPHER_CHARS.length)];
+        // Exponential distribution: most land early, a long tail for suspense
+        // -ln(1 - U) * scale, clamped to a max
+        const u = Math.random();
+        const raw = -Math.log(1 - u * 0.98) * 1.8; // scale factor
+        const seconds = Math.min(0.5 + raw, 8); // 0.5s min, 8s max
+        resolveTick[i] = Math.round(seconds * 1000 / tickMs);
+      }
+    }
+
+    // Ensure at least 2-3 characters are true late-resolvers (6-8s)
+    const nonSpaceIdxs = [];
+    for (let i = 0; i < len; i++) {
+      if (!resolved[i]) nonSpaceIdxs.push(i);
+    }
+    const lateCount = 2 + Math.floor(Math.random() * 2); // 2-3 holdouts
+    const shuffled = nonSpaceIdxs.sort(() => Math.random() - 0.5);
+    for (let i = 0; i < Math.min(lateCount, shuffled.length); i++) {
+      const lateSec = 6 + Math.random() * 2; // 6-8s
+      resolveTick[shuffled[i]] = Math.round(lateSec * 1000 / tickMs);
+    }
+
+    el.textContent = display.join('');
+    let tick = 0;
+
+    const timer = setInterval(() => {
+      tick++;
+      let anyLeft = false;
+
+      for (let i = 0; i < len; i++) {
+        if (resolved[i]) continue;
+
+        if (tick >= resolveTick[i]) {
+          // Lock in the real character
+          resolved[i] = true;
+          display[i] = targetText[i];
+        } else {
+          // Keep scrambling
+          display[i] = CIPHER_CHARS[Math.floor(Math.random() * CIPHER_CHARS.length)];
+          anyLeft = true;
+        }
+      }
+
+      el.textContent = display.join('');
+
+      if (!anyLeft) {
+        clearInterval(timer);
+        el.textContent = targetText;
+      }
+    }, tickMs);
+  }
+
+  function startQuoteRotation() {
+    const el = document.getElementById('header-quote');
+    // Show first quote immediately
+    cipherDecode(pickNextQuote(), el);
+
+    // Rotate every 5–10 minutes (random within range)
+    function scheduleNext() {
+      const delayMs = (5 + Math.random() * 5) * 60 * 1000;
+      quoteInterval = setTimeout(() => {
+        cipherDecode(pickNextQuote(), el);
+        scheduleNext();
+      }, delayMs);
+    }
+    scheduleNext();
+  }
+
+  // ─── Hotkey Utilities ──────────────────────────────────────────────
+  function bindingToDisplay(binding) {
+    return binding.split('+').map(k => {
+      if (k === 'ctrl') return 'Ctrl';
+      if (k === 'shift') return 'Shift';
+      if (k === 'alt') return 'Alt';
+      if (k === 'meta') return 'Meta';
+      if (k === 'enter') return 'Enter';
+      if (k === ',') return ',';
+      return k.toUpperCase();
+    }).join(' + ');
+  }
+
+  function eventToBinding(e) {
+    const parts = [];
+    if (e.ctrlKey || e.metaKey) parts.push('ctrl');
+    if (e.shiftKey) parts.push('shift');
+    if (e.altKey) parts.push('alt');
+    let key = e.key;
+    // Normalize
+    if (key === 'Control' || key === 'Shift' || key === 'Alt' || key === 'Meta') return null; // modifier only
+    if (key === ' ') key = 'space';
+    else key = key.toLowerCase();
+    parts.push(key);
+    return parts.join('+');
+  }
+
+  function matchesBinding(e, binding) {
+    if (!binding) return false;
+    const parts = binding.split('+');
+    const key = parts[parts.length - 1];
+    const needCtrl = parts.includes('ctrl');
+    const needShift = parts.includes('shift');
+    const needAlt = parts.includes('alt');
+
+    const hasCtrl = e.ctrlKey || e.metaKey;
+    const hasShift = e.shiftKey;
+    const hasAlt = e.altKey;
+
+    if (needCtrl !== hasCtrl) return false;
+    if (needShift !== hasShift) return false;
+    if (needAlt !== hasAlt) return false;
+
+    let eKey = e.key;
+    if (eKey === ' ') eKey = 'space';
+    else eKey = eKey.toLowerCase();
+
+    return eKey === key;
+  }
+
+  function renderHotkeyTable() {
+    const table = document.getElementById('hotkey-table-body');
+    let html = '';
+    hotkeyActions.forEach(action => {
+      const binding = settings.hotkeys[action.id] || action.defaultBinding;
+      html += `<tr data-action-id="${action.id}">
+        <td>${action.label}</td>
+        <td class="hotkey-display">${bindingToDisplay(binding)}</td>
+        <td><button class="hotkey-edit-btn" data-action-id="${action.id}">[edit]</button></td>
+      </tr>`;
+    });
+    table.innerHTML = html;
+
+    // Edit buttons
+    table.querySelectorAll('.hotkey-edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        startHotkeyCapture(btn.dataset.actionId);
+      });
+    });
+  }
+
+  let capturingHotkeyId = null;
+
+  function startHotkeyCapture(actionId) {
+    capturingHotkeyId = actionId;
+    const row = document.querySelector(`tr[data-action-id="${actionId}"]`);
+    const cell = row.querySelector('.hotkey-display');
+    cell.innerHTML = '<span class="hotkey-capture">Press keys...</span>';
+  }
+
+  function finishHotkeyCapture(binding) {
+    if (!capturingHotkeyId || !binding) return;
+    settings.hotkeys[capturingHotkeyId] = binding;
+    saveSettings();
+    capturingHotkeyId = null;
+    renderHotkeyTable();
+  }
+
+  function cancelHotkeyCapture() {
+    capturingHotkeyId = null;
+    renderHotkeyTable();
+  }
+
+  // ─── Initialization ───────────────────────────────────────────────
+  function initApp() {
+    initializeDay();
+    applyTheme(settings.theme);
+    applyScanlines(settings.scanlines);
+    applyVignette(settings.vignette);
+    document.getElementById('setting-scanlines').checked = settings.scanlines;
+    document.getElementById('setting-vignette').checked = settings.vignette;
+    document.getElementById('setting-tab').value = settings.tabInsert || 'tab';
+    document.getElementById('setting-autosave').value = String(settings.autosaveDelay || 1000);
+
+    refreshUI();
+    renderHotkeyTable();
+    document.getElementById('about-version').textContent = 'v' + APP_VERSION;
+    setFocus('log');
+    bindEvents();
+    startQuoteRotation();
+  }
+
+  // ─── Event Binding ────────────────────────────────────────────────
+  function bindEvents() {
+    const logTextarea = document.getElementById('log-textarea');
+    const taskInput = document.getElementById('task-input');
+
+    // Autosave on log typing
+    logTextarea.addEventListener('input', scheduleAutosave);
+
+    // Tab / Shift+Tab key in log (uses execCommand to preserve undo history)
+    logTextarea.addEventListener('keydown', e => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const insert = (settings.tabInsert === 'spaces') ? '    ' : '\t';
+        const start = logTextarea.selectionStart;
+        const end = logTextarea.selectionEnd;
+        const val = logTextarea.value;
+
+        if (start === end) {
+          // No selection — insert tab at cursor (execCommand keeps undo stack)
+          document.execCommand('insertText', false, insert);
+        } else {
+          // Selection exists — indent/outdent each line in the block
+          // Find the start of the first selected line
+          const lineStart = val.lastIndexOf('\n', start - 1) + 1;
+          // Find the end of the last selected line
+          let lineEnd = val.indexOf('\n', end);
+          if (lineEnd === -1) lineEnd = val.length;
+
+          const block = val.substring(lineStart, lineEnd);
+          const lines = block.split('\n');
+          let modified;
+
+          if (e.shiftKey) {
+            // Shift+Tab: outdent — remove one leading tab or up to 4 leading spaces per line
+            modified = lines.map(line => {
+              if (line.startsWith('\t')) return line.substring(1);
+              const m = line.match(/^( {1,4})/);
+              return m ? line.substring(m[1].length) : line;
+            });
+          } else {
+            // Tab: indent — prepend tab/spaces to each line
+            modified = lines.map(line => insert + line);
+          }
+
+          const newBlock = modified.join('\n');
+
+          // Select the block, then replace via execCommand to preserve undo
+          logTextarea.selectionStart = lineStart;
+          logTextarea.selectionEnd = lineEnd;
+          document.execCommand('insertText', false, newBlock);
+
+          // Restore selection to cover the modified block
+          logTextarea.selectionStart = lineStart;
+          logTextarea.selectionEnd = lineStart + newBlock.length;
+        }
+        scheduleAutosave();
+      }
+    });
+
+    // Add task
+    document.getElementById('btn-add-task').addEventListener('click', () => {
+      addTask(taskInput.value);
+      taskInput.value = '';
+      taskInput.focus();
+    });
+    taskInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        addTask(taskInput.value);
+        taskInput.value = '';
+      }
+    });
+
+    // Panel focus (ignore clicks inside scratchpad so it stays focusable)
+    document.getElementById('panel-log').addEventListener('click', () => setFocus('log'));
+    document.getElementById('panel-tasks').addEventListener('click', (e) => {
+      if (e.target.closest('.scratchpad-wrap')) return;
+      setFocus('tasks');
+    });
+
+    // Header buttons
+    document.getElementById('btn-new-day').addEventListener('click', initiateNewDay);
+    document.getElementById('btn-theme').addEventListener('click', cycleTheme);
+    document.getElementById('btn-settings').addEventListener('click', () => openModal('modal-settings'));
+    document.getElementById('btn-hotkeys').addEventListener('click', () => openModal('modal-hotkeys'));
+    document.getElementById('btn-export').addEventListener('click', () => {
+      exportCleanup = 'none';
+      document.querySelectorAll('.export-option').forEach(el => el.classList.remove('selected'));
+      document.querySelector('.export-option[data-cleanup="none"]').classList.add('selected');
+      openModal('modal-export');
+    });
+
+    // Footer buttons
+    document.getElementById('btn-search').addEventListener('click', () => {
+      openModal('modal-search');
+      setTimeout(() => document.getElementById('search-input').focus(), 50);
+    });
+    document.getElementById('btn-history').addEventListener('click', openHistoryBrowser);
+
+    // Modal close buttons
+    document.querySelectorAll('.modal-close').forEach(btn => {
+      btn.addEventListener('click', closeAllModals);
+    });
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', e => {
+        if (e.target === overlay) closeAllModals();
+      });
+    });
+
+    // Search
+    let searchDebounce = null;
+    document.getElementById('search-input').addEventListener('input', e => {
+      if (searchDebounce) clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => performSearch(e.target.value), 200);
+    });
+
+    // New day confirmation
+    document.getElementById('btn-confirm-newday').addEventListener('click', confirmNewDay);
+    document.getElementById('btn-cancel-newday').addEventListener('click', closeAllModals);
+    document.getElementById('close-newday').addEventListener('click', closeAllModals);
+
+    // Export options
+    document.querySelectorAll('.export-option').forEach(el => {
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.export-option').forEach(e => e.classList.remove('selected'));
+        el.classList.add('selected');
+        exportCleanup = el.dataset.cleanup;
+      });
+    });
+    document.getElementById('btn-do-export').addEventListener('click', doExport);
+
+    // Settings
+    document.getElementById('setting-theme').addEventListener('change', e => {
+      applyTheme(e.target.value);
+    });
+    document.getElementById('setting-scanlines').addEventListener('change', e => {
+      applyScanlines(e.target.checked);
+    });
+    document.getElementById('setting-vignette').addEventListener('change', e => {
+      applyVignette(e.target.checked);
+    });
+    document.getElementById('setting-tab').addEventListener('change', e => {
+      settings.tabInsert = e.target.value;
+      saveSettings();
+    });
+    document.getElementById('setting-autosave').addEventListener('change', e => {
+      settings.autosaveDelay = parseInt(e.target.value);
+      saveSettings();
+    });
+
+    // Scratchpad pin toggle
+    document.getElementById('scratchpad-pin').addEventListener('click', () => {
+      setScratchpadPinned(!isScratchpadPinned());
+    });
+
+    // Scratchpad expand toggle
+    let scratchpadExpanded = false;
+    document.getElementById('scratchpad-expand').addEventListener('click', () => {
+      scratchpadExpanded = !scratchpadExpanded;
+      const ta = document.getElementById('scratchpad');
+      const btn = document.getElementById('scratchpad-expand');
+      ta.classList.toggle('expanded', scratchpadExpanded);
+      btn.textContent = scratchpadExpanded ? '[v]' : '[^]';
+      btn.title = scratchpadExpanded ? 'Collapse scratchpad' : 'Expand scratchpad';
+    });
+
+    // Scratchpad autosave
+    let scratchpadTimer = null;
+    document.getElementById('scratchpad').addEventListener('input', () => {
+      if (scratchpadTimer) clearTimeout(scratchpadTimer);
+      scratchpadTimer = setTimeout(saveScratchpad, 500);
+    });
+
+    // Reset hotkeys button
+    document.getElementById('btn-reset-hotkeys').addEventListener('click', () => {
+      settings.hotkeys = getDefaultHotkeys();
+      saveSettings();
+      renderHotkeyTable();
+    });
+
+    // ─── Keyboard Shortcuts (Configurable) ─────────────────────────
+    document.addEventListener('keydown', e => {
+      // If we're capturing a hotkey binding
+      if (capturingHotkeyId) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.key === 'Escape') {
+          cancelHotkeyCapture();
+          return;
+        }
+        const binding = eventToBinding(e);
+        if (binding) {
+          // Wait for Enter to confirm, or accept immediately if it's a combo
+          if (e.key === 'Enter' && !e.ctrlKey && !e.shiftKey && !e.altKey) {
+            // bare Enter confirms nothing — cancel
+            cancelHotkeyCapture();
+          } else {
+            finishHotkeyCapture(binding);
+          }
+        }
+        return;
+      }
+
+      // Escape — close modals (always works)
+      if (e.key === 'Escape') {
+        closeAllModals();
+        return;
+      }
+
+      // Don't intercept shortcuts when typing in inputs/textareas (except for specific combos)
+      const tag = document.activeElement?.tagName;
+      const inInput = (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT');
+
+      const hk = settings.hotkeys;
+
+      if (matchesBinding(e, hk.focusLog)) {
+        e.preventDefault(); setFocus('log'); return;
+      }
+      if (matchesBinding(e, hk.focusTasks)) {
+        e.preventDefault(); setFocus('tasks'); return;
+      }
+      if (matchesBinding(e, hk.addTask)) {
+        e.preventDefault(); setFocus('tasks'); taskInput.focus(); return;
+      }
+      if (matchesBinding(e, hk.completeTask)) {
+        e.preventDefault();
+        const firstOpen = currentTasks.find(t => t.status === 'open');
+        if (firstOpen) completeTask(firstOpen.id);
+        return;
+      }
+      if (matchesBinding(e, hk.newDay)) {
+        e.preventDefault(); initiateNewDay(); return;
+      }
+      if (matchesBinding(e, hk.search)) {
+        e.preventDefault();
+        openModal('modal-search');
+        setTimeout(() => document.getElementById('search-input').focus(), 50);
+        return;
+      }
+      if (matchesBinding(e, hk.history)) {
+        e.preventDefault(); openHistoryBrowser(); return;
+      }
+      if (matchesBinding(e, hk.settings)) {
+        e.preventDefault(); openModal('modal-settings'); return;
+      }
+      if (matchesBinding(e, hk.cycleTheme)) {
+        e.preventDefault(); cycleTheme(); return;
+      }
+      if (matchesBinding(e, hk.export)) {
+        e.preventDefault(); document.getElementById('btn-export').click(); return;
+      }
+    });
+  }
+
+  // ─── Start ─────────────────────────────────────────────────────────
+  runBootSequence();
+
+})();
+</script>
+</body>
+</html>
