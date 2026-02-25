@@ -393,6 +393,40 @@ html, body {
   flex-shrink: 0;
 }
 
+/* Outer "Recent History" group toggle */
+.history-group-toggle {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--bg-panel);
+  color: var(--fg-dim);
+  border: none;
+  padding: 4px 12px;
+  font-family: var(--font);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.history-group-toggle:hover {
+  color: var(--fg);
+  background: rgba(255,255,255,0.04);
+}
+.history-group-toggle .arrow {
+  margin-right: 6px;
+  display: inline-block;
+  width: 12px;
+  text-align: center;
+}
+
+.history-group-body {
+  display: none;
+}
+.history-group-body.open {
+  display: block;
+}
+
 .history-toggle {
   display: flex;
   align-items: center;
@@ -1284,7 +1318,7 @@ html, body {
 (function() {
   'use strict';
 
-  const APP_VERSION = '1.6.1';
+  const APP_VERSION = '1.6.2';
 
   // ─── Storage Helpers ───────────────────────────────────────────────
   const KEYS = {
@@ -1684,25 +1718,34 @@ html, body {
   function renderRecentHistory() {
     const allDates = getAllDates().filter(d => d !== currentDay);
     const recentDates = allDates.slice(0, 7);
+    const count = recentDates.length;
+
+    function buildGroupHtml(innerHtml) {
+      if (!count) return '';
+      return `<button class="history-group-toggle" id="history-group-toggle-${Math.random().toString(36).slice(2)}">
+        <span class="arrow">&gt;</span>Recent History (${count} ${count === 1 ? 'day' : 'days'})
+      </button>
+      <div class="history-group-body">${innerHtml}</div>`;
+    }
 
     // Log history
     const logHistSections = document.getElementById('log-history-sections');
-    let logHtml = '';
+    let logInner = '';
     recentDates.forEach(date => {
       const logData = load(KEYS.log(date), null);
       const content = logData ? (logData.content || '') : '';
-      logHtml += `<button class="history-toggle" data-date="${date}">
+      logInner += `<button class="history-toggle" data-date="${date}">
         <span class="arrow">&gt;</span>${date}
       </button>
       <div class="history-body" data-date="${date}">
         <div class="log-readonly">${content ? renderLogContent(content) : '<span class="text-dim">(no log)</span>'}</div>
       </div>`;
     });
-    logHistSections.innerHTML = logHtml;
+    logHistSections.innerHTML = buildGroupHtml(logInner);
 
     // Task history
     const taskHistSections = document.getElementById('task-history-sections');
-    let taskHtml = '';
+    let taskInner = '';
     recentDates.forEach(date => {
       const tasks = load(KEYS.tasks(date), []);
       let taskContent = '';
@@ -1720,22 +1763,36 @@ html, body {
         });
         taskContent += '</ul>';
       }
-      taskHtml += `<button class="history-toggle" data-date="${date}">
+      taskInner += `<button class="history-toggle" data-date="${date}">
         <span class="arrow">&gt;</span>${date}
       </button>
       <div class="history-body" data-date="${date}">${taskContent}</div>`;
     });
-    taskHistSections.innerHTML = taskHtml;
+    taskHistSections.innerHTML = buildGroupHtml(taskInner);
 
-    // Toggle handlers
+    // Outer group toggle — open/close all group bodies in sync
+    document.querySelectorAll('.history-group-toggle').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const body = btn.nextElementSibling;
+        const isOpen = body.classList.toggle('open');
+        btn.querySelector('.arrow').textContent = isOpen ? 'v' : '>';
+        // Sync the other panel's group toggle to match
+        document.querySelectorAll('.history-group-toggle').forEach(other => {
+          if (other === btn) return;
+          const otherBody = other.nextElementSibling;
+          otherBody.classList.toggle('open', isOpen);
+          other.querySelector('.arrow').textContent = isOpen ? 'v' : '>';
+        });
+      });
+    });
+
+    // Inner day toggle handlers
     document.querySelectorAll('.history-toggle').forEach(btn => {
       btn.addEventListener('click', () => {
         const date = btn.dataset.date;
-        // Toggle all bodies with same date
         document.querySelectorAll(`.history-body[data-date="${date}"]`).forEach(body => {
           body.classList.toggle('open');
         });
-        // Toggle all arrows with same date
         document.querySelectorAll(`.history-toggle[data-date="${date}"] .arrow`).forEach(arrow => {
           arrow.textContent = arrow.textContent === '>' ? 'v' : '>';
         });
